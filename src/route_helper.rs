@@ -21,5 +21,18 @@ pub(crate) fn kubernetes_route() -> () {
     } else {
         let stderr = String::from_utf8_lossy(&output.stderr);
         eprintln!("failed: {}", stderr);
+        return;
     }
+
+    // 10.43.0.1 via 10.21.17.1 dev eth0 src 10.21.17.59 uid 0
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let mut parts = stdout.split_whitespace();
+    // 提取接口
+    let _from = parts.next();
+    let _via = parts.next();
+    let _gateway = parts.next();
+    let _dev = parts.next();
+    let iface = parts.next();
+    println!("target iface: {:?}", iface.unwrap());
+
 }
