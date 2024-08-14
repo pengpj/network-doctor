@@ -25,7 +25,7 @@ fn exec_curl(url: &str) {
     };
     if output.status.success() {
         let stdout = String::from_utf8_lossy(&output.stdout);
-        println!("output: {}", stdout);
+        println!("curl {} output: {}", url, stdout);
     } else {
         let stderr = String::from_utf8_lossy(&output.stderr);
         eprintln!("failed: {}", stderr);
