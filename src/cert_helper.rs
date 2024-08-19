@@ -29,6 +29,12 @@ pub(crate) fn cert_check() {
                 continue;
             }
         };
+
+        // path ends with .crt
+        if !path.ends_with(".crt") {
+            continue;
+        }
+
         // 检查证书有效期
         let output = match std::process::Command::new("openssl")
             .arg("x509")
