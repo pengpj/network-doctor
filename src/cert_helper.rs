@@ -51,7 +51,7 @@ pub(crate) fn cert_check() {
         };
         if output.status.success() {
             let stdout = String::from_utf8_lossy(&output.stdout);
-            println!("{}: {}", path, stdout);
+            print!("{} =>\n{}", path, stdout);
             // 解析证书有效期 Jul  1 08:00:00 2022 GMT
             let parts: Vec<&str> = stdout.split('=').collect();
             if parts.len() != 2 {
@@ -71,11 +71,11 @@ pub(crate) fn cert_check() {
             // 检查是否已经过期
             let now = chrono::Utc::now();
             if date < now {
-                eprintln!("{} 证书过期，expired: {}", path, date);
+                eprintln!("证书已过期，expired: {}", date);
             }
             // 打印过期天数
             let days = date.signed_duration_since(now).num_days();
-            println!("{} 过期天数: {}", path, days);
+            println!("{} 天后过期", days);
         } else {
             let stderr = String::from_utf8_lossy(&output.stderr);
             eprintln!("failed: {}", stderr);
