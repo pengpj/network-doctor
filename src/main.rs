@@ -3,12 +3,10 @@ mod flannel_helper;
 mod iptables_helper;
 mod curl_helper;
 mod cert_helper;
+mod server_helper;
 
 fn main() -> () {
     println!("Hello, world!");
-
-    // 读取证书有效期
-    cert_helper::cert_check();
 
     // 读取 flannel 配置
     flannel_helper::flannel_config();
@@ -20,6 +18,10 @@ fn main() -> () {
     // 检查 iptables 规则
     iptables_helper::check_iptables();
 
-    // curl ping
-    curl_helper::curl_ping();
+    if(server_helper::check_k3s_server()) {
+        // 读取证书有效期
+        cert_helper::cert_check();
+        // curl ping
+        curl_helper::curl_ping();
+    }
 }
