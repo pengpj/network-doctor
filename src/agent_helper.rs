@@ -10,7 +10,14 @@ pub(crate) fn load_master_ip() -> String {
         }
     };
     // 文本中 '--server=https://192.168.200.110:6443' 为 master ip 地址
-    let master_ip = content.split("--server=").collect::<Vec<&str>>()[1].split(":").collect::<Vec<&str>>()[1].split("'").collect::<Vec<&str>>()[0];
+    let master_ip = content.split("--server=")
+        .collect::<Vec<&str>>()[1]
+        .split(":")
+        .collect::<Vec<&str>>()[1]
+        .split("'")
+        .collect::<Vec<&str>>()[0];
+    // replace '//' with ''
+    let master_ip = master_ip.replace("//", "");
     println!("master ip: {}", master_ip);
     return master_ip.to_string();
 }
@@ -31,7 +38,6 @@ pub(crate) fn check_k3s_agent() -> bool {
 }
 
 pub(crate) fn curl_master_ping(master_ip: &str) -> () {
-
     // curl -k https://master_ip:6443/ping
     let url = format!("https://{}:6443/ping", master_ip);
     println!("command: curl -k {}", url);
@@ -58,14 +64,12 @@ pub(crate) fn curl_master_ping(master_ip: &str) -> () {
 }
 
 pub(crate) fn check_master_8472(master_ip: &str) -> () {
-    // udp master ip 8472
     // nc -vz -u master_ip 8472
-    println!("command: nc -vz -u {} 8472", master_ip);
-    let output = match std::process::Command::new("nc")
-        .arg("-vz")
-        .arg("-u")
-        .arg(master_ip)
-        .arg("8472")
+    let shell_command = format!("nc -vz -u {} 8472 2>&1", master_ip);
+    println!("check flannel vxlan udp network: {}", shell_command);
+    let output = match std::process::Command::new("sh")
+        .arg("-c")
+        .arg(shell_command)
         .output() {
         Ok(output) => output,
         Err(e) => {
@@ -73,10 +77,12 @@ pub(crate) fn check_master_8472(master_ip: &str) -> () {
             return;
         }
     };
-    println!("output: {}", String::from_utf8_lossy(&output.stdout));
 
-    // if output stdout contains "succeeded", ok
-    if String::from_utf8_lossy(&output.stdout).contains("succeeded") {
+    let output =  String::from_utf8(output.stdout).unwrap();
+    println!("output: {:?}", output);
+
+    // if output stdout contains "successfully", ok
+    if output.contains("successfully") {
         println!("nc {} ip is ok", master_ip);
     } else {
         eprintln!("nc {} ip is not ok, flannel network is not ok", master_ip);

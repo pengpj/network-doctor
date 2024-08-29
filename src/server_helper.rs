@@ -45,7 +45,7 @@ pub(crate) fn pidof_cmd(k3s_server: &str) -> Result<Output, bool> {
 
 /// kubectl get nodes -o custom-columns=IP:.status.addresses[0].address --no-headers
 /// 获取所有 node 的 IP 地址
-pub(crate) fn check_node_ips() -> () {
+pub(crate) fn check_node_ips() -> Vec<String> {
     let output = match std::process::Command::new("kubectl")
         .arg("get")
         .arg("nodes")
@@ -56,7 +56,7 @@ pub(crate) fn check_node_ips() -> () {
         Ok(output) => output,
         Err(e) => {
             eprintln!("failed to execute process: {}", e);
-            return;
+            return Vec::new();
         }
     };
     if output.status.success() {
@@ -65,20 +65,22 @@ pub(crate) fn check_node_ips() -> () {
     } else {
         let stderr = String::from_utf8_lossy(&output.stderr);
         eprintln!("failed: {}", stderr);
-        return;
+        return Vec::new();
     }
 
     // 按行分割，获取每个 node 的 IP 地址
     let output_str = String::from_utf8_lossy(&output.stdout);
     let lines: Vec<&str> = output_str.split('\n').collect();
+    let mut node_ips = Vec::new();
     for line in lines {
         if line.is_empty() {
             continue;
         }
         println!("node ip: {}", line);
-        // nc -vz -u node_ip 8472
-        agent_helper::check_master_8472(line);
+        node_ips.push(line.to_string());
     }
+
+    node_ips
 
 
 }
