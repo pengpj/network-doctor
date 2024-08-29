@@ -25,7 +25,10 @@ fn main() -> () {
         // curl ping
         curl_helper::curl_ping();
         // check node flannel
-        server_helper::check_node_ips();
+        let node_ips = server_helper::check_node_ips();
+        for node_ip in node_ips {
+            agent_helper::check_master_8472(&node_ip);
+        }
     } else if agent_helper::check_k3s_agent() {
         // 读取 master ip 地址
         let master_ip = agent_helper::load_master_ip();
