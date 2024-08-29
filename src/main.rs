@@ -4,6 +4,7 @@ mod iptables_helper;
 mod curl_helper;
 mod cert_helper;
 mod server_helper;
+mod agent_helper;
 
 fn main() -> () {
     println!("Hello, world!");
@@ -18,10 +19,19 @@ fn main() -> () {
     // 检查 iptables 规则
     iptables_helper::check_iptables();
 
-    if(server_helper::check_k3s_server()) {
+    if server_helper::check_k3s_server() {
         // 读取证书有效期
         cert_helper::cert_check();
         // curl ping
         curl_helper::curl_ping();
+        // check node flannel
+        server_helper::check_node_ips();
+    } else if agent_helper::check_k3s_agent() {
+        // 读取 master ip 地址
+        let master_ip = agent_helper::load_master_ip();
+        // curl master ip
+        agent_helper::curl_master_ping(&master_ip);
+        // 检查 8472 端口
+        agent_helper::check_master_8472(&master_ip);
     }
 }

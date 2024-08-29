@@ -1,8 +1,9 @@
 use std::process::Output;
+use crate::agent_helper;
 
 /// pidof 'k3s server'
 /// 检查 k3s server 进程是否存在，如果不存在，则输出错误信息
-pub(crate) fn check_k3s_server() -> (bool) {
+pub(crate) fn check_k3s_server() -> bool {
     let k3s_server = "k3s server";
     let output = match pidof_cmd(k3s_server) {
         Ok(value) => value,
@@ -29,7 +30,7 @@ pub(crate) fn check_k3s_server() -> (bool) {
     return false;
 }
 
-fn pidof_cmd(k3s_server: &str) -> Result<Output, bool> {
+pub(crate) fn pidof_cmd(k3s_server: &str) -> Result<Output, bool> {
     let output = match std::process::Command::new("pidof")
         .arg(k3s_server)
         .output() {
@@ -40,4 +41,44 @@ fn pidof_cmd(k3s_server: &str) -> Result<Output, bool> {
         }
     };
     Ok(output)
+}
+
+/// kubectl get nodes -o custom-columns=IP:.status.addresses[0].address --no-headers
+/// 获取所有 node 的 IP 地址
+pub(crate) fn check_node_ips() -> () {
+    let output = match std::process::Command::new("kubectl")
+        .arg("get")
+        .arg("nodes")
+        .arg("-o")
+        .arg("custom-columns=IP:.status.addresses[0].address")
+        .arg("--no-headers")
+        .output() {
+        Ok(output) => output,
+        Err(e) => {
+            eprintln!("failed to execute process: {}", e);
+            return;
+        }
+    };
+    if output.status.success() {
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        println!("node ips: {}", stdout);
+    } else {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        eprintln!("failed: {}", stderr);
+        return;
+    }
+
+    // 按行分割，获取每个 node 的 IP 地址
+    let output_str = String::from_utf8_lossy(&output.stdout);
+    let lines: Vec<&str> = output_str.split('\n').collect();
+    for line in lines {
+        if line.is_empty() {
+            continue;
+        }
+        println!("node ip: {}", line);
+        // nc -vz -u node_ip 8472
+        agent_helper::check_master_8472(line);
+    }
+
+
 }
