@@ -1,5 +1,4 @@
 use std::process::Output;
-use crate::agent_helper;
 
 /// pidof 'k3s server'
 /// 检查 k3s server 进程是否存在，如果不存在，则输出错误信息
@@ -10,7 +9,19 @@ pub(crate) fn check_k3s_server() -> bool {
         Err(value) => return value,
     };
     if output.status.success() {
-        println!("k3s server is running");
+        let command = format!("ps -eo pid,lstart,cmd | grep '{}' | grep -v grep", k3s_server);
+        match std::process::Command::new("sh")
+            .arg("-c")
+            .arg(command)
+            .output() {
+            Ok(output) => {
+                println!("k3s server is running: {}", String::from_utf8_lossy(&output.stdout));
+            }
+            Err(e) => {
+                eprintln!("failed to execute process: {}", e);
+                return false;
+            }
+        };
         return true;
     } else {
         println!("k3s server is not running");
@@ -22,7 +33,19 @@ pub(crate) fn check_k3s_server() -> bool {
         Err(value) => return value,
     };
     if output.status.success() {
-        println!("k3s agent is running");
+        let command = format!("ps -eo pid,lstart,cmd | grep '{}' | grep -v grep", k3s_agent);
+        match std::process::Command::new("sh")
+            .arg("-c")
+            .arg(command)
+            .output() {
+            Ok(output) => {
+                println!("k3s agent is running: {}", String::from_utf8_lossy(&output.stdout));
+            }
+            Err(e) => {
+                eprintln!("failed to execute process: {}", e);
+                return false;
+            }
+        };
         return false;
     } else {
         println!("k3s agent is not running");
@@ -81,6 +104,4 @@ pub(crate) fn check_node_ips() -> Vec<String> {
     }
 
     node_ips
-
-
 }

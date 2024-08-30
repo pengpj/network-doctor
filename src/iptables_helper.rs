@@ -4,7 +4,7 @@
 pub(crate) fn check_iptables() -> () {
     // 检查 /usr/sbin/iptabls 是否存在
     let iptables = "/usr/sbin/iptables";
-    println!("iptables: {}", iptables);
+    println!("check iptables bin exits: {}", iptables);
     if !std::path::Path::new(iptables).exists() {
         eprintln!("iptables not found");
         return;

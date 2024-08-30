@@ -9,5 +9,5 @@ pub(crate) fn flannel_config() -> () {
             return;
         }
     };
-    println!("content: {}", content);
+    // println!("content: {}", content);
 }

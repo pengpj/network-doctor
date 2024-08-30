@@ -3,7 +3,7 @@
 ///
 pub(crate) fn kubernetes_route() -> () {
     // 执行 ip route get 10.43.0.1
-    println!("ip route get 10.43.0.1");
+    println!("command: ip route get 10.43.0.1");
     let output = match std::process::Command::new("ip")
         .arg("route")
         .arg("get")
