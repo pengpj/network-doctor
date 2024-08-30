@@ -5,7 +5,7 @@ use chrono::{DateTime, NaiveDateTime, ParseError, TimeZone, Utc};
 /// 如果证书已经过期，输出证书路径和过期时间
 pub(crate) fn cert_check() {
     let tls_dir = "/var/lib/rancher/k3s/server/tls";
-    println!("tls dir: {}", tls_dir);
+    println!("check tls, dir: {}", tls_dir);
     let entries = match std::fs::read_dir(tls_dir) {
         Ok(entries) => entries,
         Err(e) => {
@@ -51,7 +51,7 @@ pub(crate) fn cert_check() {
         };
         if output.status.success() {
             let stdout = String::from_utf8_lossy(&output.stdout);
-            print!("{} =>\n{}", path, stdout);
+            print!("{} => {}", path, stdout);
             // 解析证书有效期 Jul  1 08:00:00 2022 GMT
             let parts: Vec<&str> = stdout.split('=').collect();
             if parts.len() != 2 {
@@ -75,7 +75,7 @@ pub(crate) fn cert_check() {
             }
             // 打印过期天数
             let days = date.signed_duration_since(now).num_days();
-            println!("{} 天后过期", days);
+            // println!("{} 天后过期", days);
         } else {
             let stderr = String::from_utf8_lossy(&output.stderr);
             eprintln!("failed: {}", stderr);
